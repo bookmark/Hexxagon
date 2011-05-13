@@ -25,7 +25,6 @@ import org.anddev.andengine.opengl.texture.region.TextureRegion;
 import org.anddev.andengine.opengl.texture.region.TextureRegionFactory;
 import org.anddev.andengine.ui.activity.BaseGameActivity;
 
-import android.util.Log;
 import android.widget.Toast;
 
 public class HelloWorld extends BaseGameActivity implements IOnSceneTouchListener {

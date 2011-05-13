@@ -39,7 +39,7 @@ public class Gameplay {
         } else if (type == HexxagonConstant.CELL_PLAYER1 || type == HexxagonConstant.CELL_PLAYER2) {
             if (cell.isSelected()) {
                 cell.setSelected(false);
-                unSetCellMovble(moveable);
+                unSetCellMovable(moveable);
                 return 5;
             } else {
                 cell.setSelected(true);
@@ -48,9 +48,9 @@ public class Gameplay {
                 return 4;
             }
         } else if (type == HexxagonConstant.COPYABLE || type == HexxagonConstant.JUMPABLE) {
-            unSetCellMovble(moveable);
+            unSetCellMovable(moveable);
             doMove(coordinate);
-            getCellRound1(cell, zone);
+            getCellRound1(hexagon.xDim, hexagon.yDim, zone);
             score = getEnemyLost(zone);
             updateScore(score);
             return currentPlayer;
@@ -99,6 +99,8 @@ public class Gameplay {
     }
 
     /**
+     * Tinh toan ca di chuyen copy va jump
+     * 
      * @param player Di chuyen quan cua player 1 hoac player 2
      * @return Di chuyển thành công hay không </br> True : Thành công</br> False
      *         : Thất bại
@@ -128,13 +130,14 @@ public class Gameplay {
         Hexagon hexagon = (Hexagon)cell.getSprite();
         x = hexagon.xDim;
         y = hexagon.yDim;
-
         // Round 1
-        getCellRound1(cell, around);
-
+        getCellRound1(x, y, around);
         // Round 2
-        // Check canh 1. (moi canh 3 diem)
-        // Di chuyen tu tam
+        getCellRound2(x, y, around);
+        return around;
+    }
+
+    private static void getCellRound2(int x, int y, ArrayList<Coordinate> around) {
         int x2 = x + 2;
         int y2 = y - 2;
         if (x2 >= 0 && x2 <= 8 && y2 >= 0 && y2 <= 8) {
@@ -193,7 +196,6 @@ public class Gameplay {
         if (x2 >= 0 && x2 <= 8 && y2 >= 0 && y2 <= 8) {
             around.add(new Coordinate(x2, y2, HexxagonConstant.JUMPABLE));
         }
-        return around;
     }
 
     /**
@@ -203,10 +205,10 @@ public class Gameplay {
      * @param around : Các ô lấy được sẽ được lưu vào một ArrayList của param
      *            truyền vào
      */
-    private static void getCellRound1(Cell cell, ArrayList<Coordinate> around) {
-        Hexagon hexagon = (Hexagon)cell.getSprite();
-        int x = hexagon.xDim;
-        int y = hexagon.yDim;
+    private static void getCellRound1(int x, int y, ArrayList<Coordinate> around) {
+        // Hexagon hexagon = (Hexagon)cell.getSprite();
+        // int x = hexagon.xDim;
+        // int y = hexagon.yDim;
 
         int totalRow = x + y;
         // Check top 1
@@ -243,7 +245,7 @@ public class Gameplay {
         if (length > 0) {
             for (int i = 0; i < length; i++) {
                 Coordinate coordinate = movbleCell.get(i);
-                if (Map.maps[coordinate.getX()][coordinate.getY()].getType() != 0) {
+                if (Map.maps[coordinate.getX()][coordinate.getY()].getType() == HexxagonConstant.CELL_DEFAULT) {
                     Map.maps[coordinate.getX()][coordinate.getY()]
                             .setType(coordinate.getMoveType());
                 }
@@ -252,11 +254,33 @@ public class Gameplay {
     }
 
     /**
+     * Ham tinh cac o Cell co the di chuyen duoc
+     * 
+     * @param coordinate Toa do cua Cell
+     * @return : Tra ve toan bo Cell co the di chuyen duoc
+     */
+    public static ArrayList<Coordinate> getAllCellMovable(Coordinate coordinate) {
+        ArrayList<Coordinate> rs = new ArrayList<Coordinate>();
+        getCellRound1(coordinate.getX(), coordinate.getY(), rs);
+        getCellRound2(coordinate.getX(), coordinate.getY(), rs);
+        int length = rs.size();
+        if (length > 0) {
+            for (int i = 0; i < length; i++) {
+                Coordinate coordinate1 = rs.get(i);
+                if (Map.maps[coordinate1.getX()][coordinate1.getY()].getType() == HexxagonConstant.CELL_DEFAULT) {
+                    rs.add(coordinate1);
+                }
+            }
+        }
+        return rs;
+    }
+
+    /**
      * Huy trang thai movble cua Cell
      * 
      * @param movbleCell
      */
-    private static void unSetCellMovble(ArrayList<Coordinate> movbleCell) {
+    private static void unSetCellMovable(ArrayList<Coordinate> movbleCell) {
         int length = movbleCell.size();
         if (length > 0) {
             for (int i = 0; i < length; i++) {
@@ -276,7 +300,6 @@ public class Gameplay {
     private static int getEnemyLost(ArrayList<Coordinate> array) {
         int length = array.size();
         int count = 0;
-        ArrayList<Coordinate> rs = new ArrayList<Coordinate>();
         for (int i = 0; i < length; i++) {
             Coordinate coordinate = array.get(i);
             if (currentPlayer != Map.maps[coordinate.getX()][coordinate.getY()].getType()) {
@@ -287,4 +310,21 @@ public class Gameplay {
         return count;
     }
 
+    /**
+     * @param player HexxagonConstant.PLAYER1 hoac HexxagonConstant.PLAYER2
+     * @return Tra ve toan bo so quan cua player
+     */
+    public static ArrayList<Coordinate> getAllUnitCoordinates(int player) {
+        ArrayList<Coordinate> coordinates = new ArrayList<Coordinate>();
+        for (int i = 0; i < 9; i++) {
+            for (int j = 0; j < 9; j++) {
+                if (Map.maps[i][j].getType() == player) {
+                    Coordinate coordinate = new Coordinate(i, j);
+                    coordinates.add(coordinate);
+                }
+
+            }
+        }
+        return coordinates;
+    }
 }
